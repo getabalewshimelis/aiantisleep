@@ -1,20 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:background="#1A1A1A">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Face Mesh Overlay (custom drawing surface) -->
+    <com.gech.antisleepdetector.FaceMeshOverlayView
+        android:id="@+id/face_mesh_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Top Status Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Camera Sleep Detector"
-        android:textSize="24sp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="#80000000">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Feature Coming Soon"
-        android:layout_marginTop="16dp" />
+        <View
+            android:id="@+id/status_indicator"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="@drawable/status_dot_awake" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:text="Initializing..."
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/tv_ear_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="EAR: --"
+            android:textColor="#AAAAAA"
+            android:textSize="13sp"
+            android:fontFamily="monospace" />
+    </LinearLayout>
+
+    <!-- SLEEP Warning Overlay (hidden by default) -->
+    <LinearLayout
+        android:id="@+id/sleep_warning_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="#99FF0000"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠"
+            android:textSize="72sp"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_sleep_warning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SLEEP DETECTED!"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wake up! Stay alert!"
+            android:textColor="#FFCCCC"
+            android:textSize="18sp"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+
+    <!-- No Camera Permission / Error -->
+    <LinearLayout
+        android:id="@+id/no_permission_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:background="#1A1A1A"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📷"
+            android:textSize="64sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Camera Permission Required"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grant camera access to enable sleep detection"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/btn_grant_permission"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Grant Permission"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="#66E0A3"
+            android:textColor="#1A1A1A" />
+    </LinearLayout>
+
+</FrameLayout>
