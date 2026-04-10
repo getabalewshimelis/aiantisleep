@@ -1,7 +1,6 @@
 package com.gech.antisleepdetector;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -34,10 +33,12 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Fragment that displays sleep statistics gathered from both Camera and Arduino.
+ */
 public class ArduinoFragment extends Fragment implements SerialInputOutputManager.Listener {
 
     private BarChart barChart;
@@ -49,9 +50,6 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
     private String[] hourLabels = new String[8];
     private int[] windowHours = new int[8];
 
-    private static final String PREFS_NAME = "SleepDataPrefs";
-    private static final String KEY_SLEEP_EVENTS = "sleep_timestamps";
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -60,11 +58,20 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         statusText = view.findViewById(R.id.status_text);
         
         initializeWindow();
-        loadPersistedData();
+        loadData();
         setupChart();
         connectUsb();
         
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh data when returning to this fragment (e.g. after using camera)
+        initializeWindow();
+        loadData();
+        updateChart();
     }
 
     private void initializeWindow() {
@@ -84,10 +91,9 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         }
     }
 
-    private void loadPersistedData() {
+    private void loadData() {
         if (getContext() == null) return;
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        Set<String> timestamps = prefs.getStringSet(KEY_SLEEP_EVENTS, new HashSet<>());
+        Set<String> timestamps = SleepDataManager.getSleepEvents(getContext());
         
         long twentyFourHoursAgo = System.currentTimeMillis() - (24 * 60 * 60 * 1000);
         
@@ -111,20 +117,6 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         }
     }
 
-    private void saveSleepEvent(long timestamp) {
-        if (getContext() == null) return;
-        SharedPreferences prefs = getContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        Set<String> timestamps = new HashSet<>(prefs.getStringSet(KEY_SLEEP_EVENTS, new HashSet<>()));
-        
-        timestamps.add(String.valueOf(timestamp));
-        long cleanupThreshold = System.currentTimeMillis() - (48 * 60 * 60 * 1000);
-        timestamps.removeIf(s -> {
-            try { return Long.parseLong(s) < cleanupThreshold; } catch (Exception e) { return true; }
-        });
-        
-        prefs.edit().putStringSet(KEY_SLEEP_EVENTS, timestamps).apply();
-    }
-
     private void setupChart() {
         barChart.setBackgroundColor(Color.parseColor("#1A1A1A"));
         barChart.setNoDataText("Waiting for sleep data...");
@@ -141,7 +133,7 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         xAxis.setLabelCount(8);
 
         YAxis leftAxis = barChart.getAxisLeft();
-        leftAxis.setDrawLabels(false); 
+        leftAxis.setTextColor(Color.LTGRAY);
         leftAxis.setDrawGridLines(true);
         leftAxis.setGridColor(Color.parseColor("#333333"));
         leftAxis.setAxisMinimum(0f);
@@ -157,10 +149,7 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
                 if (index >= 0 && index < 8) {
                     List<Integer> minutes = sleepMinutes.get(index);
                     String details = "Time: " + hourLabels[index] + "\nSleep Count: " + minutes.size();
-                    if (!minutes.isEmpty()) {
-                        details += "\nMinutes: " + minutes.toString().replace("[", "").replace("]", "");
-                    }
-                    Toast.makeText(getContext(), details, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getContext(), details, Toast.LENGTH_SHORT).show();
                 }
             }
             @Override public void onNothingSelected() {}
@@ -178,9 +167,10 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
 
         barChart.getAxisLeft().setAxisMaximum(Math.max(5f, maxVal + 1f));
 
-        BarDataSet dataSet = new BarDataSet(entries, "Sleep");
+        BarDataSet dataSet = new BarDataSet(entries, "Sleep Events");
         dataSet.setColor(Color.parseColor("#66E0A3"));
-        dataSet.setDrawValues(false);
+        dataSet.setDrawValues(true);
+        dataSet.setValueTextColor(Color.WHITE);
 
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.5f);
@@ -195,7 +185,10 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         if (manager == null) return;
         
         List<UsbSerialDriver> drivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
-        if (drivers.isEmpty()) return;
+        if (drivers.isEmpty()) {
+            statusText.setText("Arduino Status: Not Found");
+            return;
+        }
 
         UsbSerialDriver driver = drivers.get(0);
         UsbDeviceConnection connection = manager.openDevice(driver.getDevice());
@@ -216,15 +209,15 @@ public class ArduinoFragment extends Fragment implements SerialInputOutputManage
         String msg = new String(data).trim();
         if (msg.contains("sleep")) {
             long now = System.currentTimeMillis();
-            saveSleepEvent(now);
+            SleepDataManager.saveSleepEvent(requireContext(), now);
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() -> {
                     Calendar cal = Calendar.getInstance();
                     int h = cal.get(Calendar.HOUR_OF_DAY);
                     if (h != windowHours[7]) {
                         initializeWindow();
-                        loadPersistedData();
-                        setupChart();
+                        loadData();
+                        updateChart();
                     } else {
                         sleepMinutes.get(7).add(cal.get(Calendar.MINUTE));
                         updateChart();

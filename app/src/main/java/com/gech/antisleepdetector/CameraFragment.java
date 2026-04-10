@@ -271,10 +271,12 @@ public class CameraFragment extends Fragment {
         for (LandmarkProto.NormalizedLandmark lm : faceLandmarks) {
             points.add(new PointF(lm.getX(), lm.getY()));
         }
-
+        boolean rightClosed = rightEAR < EAR_THRESHOLD;
+        boolean leftClosed = leftEAR < EAR_THRESHOLD;
         boolean eyesClosed = avgEAR < EAR_THRESHOLD;
-        if (eyesClosed) {
-            closedEyeFrameCount++;
+        boolean twoeyeclosed = avgEAR < EAR_THRESHOLD && rightEAR < EAR_THRESHOLD && leftEAR < EAR_THRESHOLD;
+        if (twoeyeclosed) {
+            closedEyeFrameCount ++;
         } else {
             closedEyeFrameCount = 0;
         }
@@ -286,6 +288,8 @@ public class CameraFragment extends Fragment {
 
             if (shouldSleep && !isSleeping) {
                 isSleeping = true;
+                // Save camera-based sleep event to shared storage
+                SleepDataManager.saveSleepEvent(requireContext(), System.currentTimeMillis());
                 showSleepWarning();
             } else if (!shouldSleep && isSleeping) {
                 isSleeping = false;
@@ -295,10 +299,17 @@ public class CameraFragment extends Fragment {
             if (shouldSleep) {
                 statusText.setText("😴 SLEEPING!");
                 statusIndicator.setBackgroundResource(R.drawable.status_dot_sleep);
-            } else if (eyesClosed) {
+            } else if (twoeyeclosed) {
                 statusText.setText("Eyes closing...");
                 statusIndicator.setBackgroundResource(R.drawable.status_dot_sleep);
-            } else {
+            } else if (rightClosed){
+                statusText.setText("Right eye closing...");
+                statusIndicator.setBackgroundResource(R.drawable.status_dot_sleep);
+            } else if (leftClosed){
+                statusText.setText("Left eye closing...");
+                statusIndicator.setBackgroundResource(R.drawable.status_dot_sleep);
+            }
+            else {
                 statusText.setText("✓ Awake");
                 statusIndicator.setBackgroundResource(R.drawable.status_dot_awake);
             }

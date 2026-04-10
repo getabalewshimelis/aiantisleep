@@ -11,6 +11,7 @@ usbSerial = "3.10.0"
 mpAndroidChart = "3.1.0"
 camerax = "1.6.0"
 mediapipeFaceMesh = "0.10.20"
+googleAi = "0.9.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -28,6 +29,7 @@ camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", vers
 camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
 mediapipe-face-mesh = { group = "com.google.mediapipe", name = "solution-core", version.ref = "mediapipeFaceMesh" }
 mediapipe-face-mesh-solution = { group = "com.google.mediapipe", name = "facemesh", version.ref = "mediapipeFaceMesh" }
+google-ai-client = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "googleAi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

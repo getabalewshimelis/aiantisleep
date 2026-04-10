@@ -4,19 +4,18 @@ plugins {
 
 android {
     namespace = "com.gech.antisleepdetector"
-    compileSdk = 36 // Changed to 34 (Stable) to fix the "SDK not found" error
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.gech.antisleepdetector"
         minSdk = 24
-        targetSdk = 35 // Changed to 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         ndk {
-            // Explicitly include ABIs to help MediaPipe find the right binaries
             abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
         }
     }
@@ -50,9 +49,12 @@ dependencies {
     implementation(libs.camerax.lifecycle)
     implementation(libs.camerax.view)
 
-    // MediaPipe Face Mesh (Legacy Solutions API)
+    // MediaPipe Face Mesh
     implementation(libs.mediapipe.face.mesh)
     implementation(libs.mediapipe.face.mesh.solution)
+
+    // Google AI (Gemini)
+    implementation(libs.google.ai.client)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

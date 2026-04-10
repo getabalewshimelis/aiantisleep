@@ -16,18 +16,19 @@ public class MainActivity extends AppCompatActivity {
 
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
         
-        // Initial fragment
+        // Initial fragment: Camera
         if (savedInstanceState == null) {
-            loadFragment(new ArduinoFragment());
+            loadFragment(new CameraFragment());
+            bottomNav.setSelectedItemId(R.id.navigation_camera);
         }
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
             int itemId = item.getItemId();
-            if (itemId == R.id.navigation_arduino) {
-                selectedFragment = new ArduinoFragment();
-            } else if (itemId == R.id.navigation_camera) {
+            if (itemId == R.id.navigation_camera) {
                 selectedFragment = new CameraFragment();
+            } else if (itemId == R.id.navigation_arduino) {
+                selectedFragment = new ArduinoFragment();
             } else if (itemId == R.id.navigation_settings) {
                 selectedFragment = new SettingsFragment();
             }
