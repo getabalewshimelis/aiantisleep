@@ -63,7 +63,7 @@ public class SettingsFragment extends Fragment {
         // If 404 occurs, it might be due to the API version or region.
         GenerativeModel gm = new GenerativeModel(
                 "gemini-1.5-flash", 
-                "AIzaSyA_1u7Ssh1F75-mNFJKhK7ohCOmQwj-iM4"
+                "enter_your_api" //fill with your api
         );
         modelFutures = GenerativeModelFutures.from(gm);
     }
